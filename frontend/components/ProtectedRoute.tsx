@@ -12,10 +12,12 @@ export default function ProtectedRoute({
   children: React.ReactNode;
   allowedRoles: UserRole[];
 }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (loading) return;
+
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -23,20 +25,28 @@ export default function ProtectedRoute({
 
     if (user && !allowedRoles.includes(user.role)) {
       switch (user.role) {
-        case 'user':
+        case 'citizen':
           router.push('/user/dashboard');
           break;
         case 'admin':
           router.push('/admin/dashboard');
           break;
-        case 'super-admin':
+        case 'superadmin':
           router.push('/super-admin/dashboard');
           break;
         default:
           router.push('/login');
       }
     }
-  }, [isAuthenticated, user, allowedRoles, router]);
+  }, [isAuthenticated, user, allowedRoles, router, loading]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user || !allowedRoles.includes(user.role)) {
     return null;

@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { authAPI, saveAuthToken, decodeToken } from '@/lib/api';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -40,10 +39,23 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await authAPI.register({
+        email: formData.email,
+        password: formData.password,
+        role: 'citizen',
+      });
+
+      // Save token and redirect to login or dashboard
+      saveAuthToken(response.access_token);
+      
+      // Redirect to user dashboard
+      router.push('/user/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
       setLoading(false);
-      router.push('/login');
-    }, 1000);
+    }
   };
 
   return (
@@ -52,7 +64,7 @@ export default function RegisterPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-8">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-black">Create Account</h1>
-            <p className="text-gray-600 mt-2">Register as a new user</p>
+            <p className="text-gray-600 mt-2">Register as a new citizen</p>
           </div>
 
           {error && (
@@ -63,21 +75,6 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                required
-              />
-            </div>
-
-            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
@@ -87,22 +84,7 @@ export default function RegisterPage() {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-gray-900"
                 required
               />
             </div>
@@ -117,9 +99,11 @@ export default function RegisterPage() {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-gray-900"
                 required
+                minLength={6}
               />
+              <p className="mt-1 text-xs text-gray-500">At least 6 characters</p>
             </div>
 
             <div>
@@ -132,7 +116,7 @@ export default function RegisterPage() {
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-gray-900"
                 required
               />
             </div>

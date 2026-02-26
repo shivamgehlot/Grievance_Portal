@@ -1,45 +1,91 @@
-export type UserRole = 'user' | 'admin' | 'super-admin';
+export type UserRole = 'citizen' | 'admin' | 'superadmin';
 
+// Backend department IDs
+export type DepartmentId = 
+  | 'water'
+  | 'sanitation'
+  | 'roads'
+  | 'electricity'
+  | 'health'
+  | 'police'
+  | 'housing'
+  | 'general'
+  | 'miscellaneous';
+
+// Frontend display names for departments
 export type Department = 
   | 'Water Supply'
-  | 'Sanitation & Garbage'
-  | 'Roads & Drainage'
+  | 'Sanitation & Waste'
+  | 'Roads & Infrastructure'
   | 'Electricity'
   | 'Public Health'
-  | 'Police & Law Enforcement'
-  | 'Housing & Building Issues'
-  | 'General / Miscellaneous';
+  | 'Police & Safety'
+  | 'Housing & Building'
+  | 'General Services'
+  | 'Miscellaneous';
 
-export type GrievanceStatus = 'Solved' | 'Unsolved' | 'In Progress';
+export type GrievanceStatus = 'submitted' | 'in_progress' | 'resolved' | 'rejected';
 
-export type Urgency = 'Low' | 'Medium' | 'High';
+export type Priority = 'low' | 'medium' | 'high';
+
+// Department mapping between backend IDs and frontend display names
+export const DEPARTMENT_MAP: Record<DepartmentId, Department> = {
+  water: 'Water Supply',
+  sanitation: 'Sanitation & Waste',
+  roads: 'Roads & Infrastructure',
+  electricity: 'Electricity',
+  health: 'Public Health',
+  police: 'Police & Safety',
+  housing: 'Housing & Building',
+  general: 'General Services',
+  miscellaneous: 'Miscellaneous',
+};
+
+export const DEPARTMENT_ID_MAP: Record<Department, DepartmentId> = {
+  'Water Supply': 'water',
+  'Sanitation & Waste': 'sanitation',
+  'Roads & Infrastructure': 'roads',
+  'Electricity': 'electricity',
+  'Public Health': 'health',
+  'Police & Safety': 'police',
+  'Housing & Building': 'housing',
+  'General Services': 'general',
+  'Miscellaneous': 'miscellaneous',
+};
+
+// Status display names
+export const STATUS_DISPLAY: Record<GrievanceStatus, string> = {
+  submitted: 'Submitted',
+  in_progress: 'In Progress',
+  resolved: 'Resolved',
+  rejected: 'Rejected',
+};
+
+// Priority display names
+export const PRIORITY_DISPLAY: Record<Priority, string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+};
 
 export interface User {
   id: string;
   email: string;
-  name: string;
   role: UserRole;
-  department?: Department;
+  departments?: DepartmentId[];  // For admin users
 }
 
 export interface Grievance {
   id: string;
-  userId: string;
-  userName: string;
-  userPhone: string;
-  userEmail: string;
-  userAddress: string;
-  department: Department;
-  title: string;
-  description: string;
-  urgency: Urgency;
+  user_id: string;
+  message: string;
+  predicted_department: DepartmentId;
+  priority: Priority;
+  confidence: number;
+  explanation: string;
   status: GrievanceStatus;
-  imageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-  assignedTo?: string;
-  responses: GrievanceResponse[];
-  timeline: TimelineEntry[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface GrievanceResponse {

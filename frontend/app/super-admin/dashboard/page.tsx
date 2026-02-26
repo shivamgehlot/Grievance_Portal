@@ -33,8 +33,8 @@ export default function SuperAdminDashboard() {
   });
 
   return (
-    <ProtectedRoute allowedRoles={['super-admin']}>
-      <DashboardLayout role="super-admin">
+    <ProtectedRoute allowedRoles={['superadmin']}>
+      <DashboardLayout role="superadmin">
         <div className="space-y-8">
           <div>
             <h1 className="text-2xl font-bold text-black">Super Admin Dashboard</h1>
