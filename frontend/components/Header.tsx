@@ -3,6 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { LogOut, User } from 'lucide-react';
+import { DEPARTMENT_MAP } from '@/types';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -14,9 +15,12 @@ export default function Header() {
   };
 
   const getRoleName = () => {
-    if (user?.role === 'user') return 'User';
-    if (user?.role === 'admin') return `Admin - ${user.department}`;
-    if (user?.role === 'super-admin') return 'Super Administrator';
+    if (user?.role === 'citizen') return 'Citizen';
+    if (user?.role === 'admin') {
+      const deptName = user.departments?.[0] ? DEPARTMENT_MAP[user.departments[0]] : 'Admin';
+      return `Admin - ${deptName}`;
+    }
+    if (user?.role === 'superadmin') return 'Super Administrator';
     return '';
   };
 

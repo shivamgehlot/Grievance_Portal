@@ -26,9 +26,8 @@ export default function Sidebar({ role }: SidebarProps) {
   ];
 
   const adminLinks = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/grievances', label: 'Manage Grievances', icon: FileText },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/admin/grievances', label: 'Manage Grievances', icon: FileText },
   ];
 
   const superAdminLinks = [

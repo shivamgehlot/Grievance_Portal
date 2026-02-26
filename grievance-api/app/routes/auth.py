@@ -75,9 +75,10 @@ async def register(
 @router.post("/login", response_model=Token)
 async def login(credentials: UserLogin) -> Token:
     """
-    Login to get JWT access token.
+    Login to get JWT access token with role-based access.
     
-    Token includes: sub (user_id), role, department_ids
+    Users select their role and department at login time.
+    The system validates if they have permission for that role/department.
     """
     users_col = get_users_collection()
     
@@ -96,13 +97,61 @@ async def login(credentials: UserLogin) -> Token:
             detail="Incorrect email or password"
         )
     
-    # Create JWT token
+    # Validate role access
+    user_role = user.get("role", "citizen")
+    selected_role = credentials.role
+    
+    # Citizens can only login as citizens
+    if user_role == "citizen" and selected_role != "citizen":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"You do not have {selected_role} access"
+        )
+    
+    # Admins can login as citizen or admin (but not superadmin)
+    if user_role == "admin" and selected_role not in ["citizen", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"You do not have {selected_role} access"
+        )
+    
+    # Superadmins can login with any role
+    # (no validation needed for superadmin)
+    
+    # Validate department access for admin role
+    department_ids = []
+    if selected_role == "admin":
+        if not credentials.department:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Department selection required for admin login"
+            )
+        
+        # Check if user has access to the selected department
+        user_departments = user.get("departments", [])
+        
+        # Superadmins have access to all departments
+        if user_role == "superadmin":
+            department_ids = [credentials.department]
+        elif credentials.department not in user_departments:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"You do not have access to department: {credentials.department}"
+            )
+        else:
+            department_ids = [credentials.department]
+    elif selected_role == "superadmin":
+        # Superadmin gets access to all departments
+        department_ids = user.get("departments", [])
+    
+    # Create JWT token with selected role and department
     access_token = create_access_token(
         data={
             "sub": str(user["_id"]),
-            "role": user["role"],
-            "department_ids": user.get("departments", [])
+            "role": selected_role,
+            "department_ids": department_ids
         }
     )
     
     return Token(access_token=access_token)
+
