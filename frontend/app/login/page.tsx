@@ -4,13 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { departments } from '@/mock-data';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [department, setDepartment] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -23,21 +20,30 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const success = await login(email, password, isAdmin ? department : undefined);
+      const success = await login(email, password);
       
       if (success) {
-        if (email === 'superadmin@gov.in') {
-          router.push('/super-admin/dashboard');
-        } else if (email.includes('admin')) {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/user/dashboard');
-        }
+        // Wait a bit for user state to update
+        setTimeout(() => {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const role = payload.role;
+            
+            if (role === 'superadmin') {
+              router.push('/super-admin/dashboard');
+            } else if (role === 'admin') {
+              router.push('/admin/dashboard');
+            } else {
+              router.push('/user/dashboard');
+            }
+          }
+        }, 100);
       } else {
         setError('Invalid credentials');
       }
-    } catch (err) {
-      setError('Login failed. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -68,7 +74,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-gray-900"
                 required
               />
             </div>
@@ -82,45 +88,10 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black text-gray-900"
                 required
               />
             </div>
-
-            <div className="flex items-center">
-              <input
-                id="isAdmin"
-                type="checkbox"
-                checked={isAdmin}
-                onChange={(e) => setIsAdmin(e.target.checked)}
-                className="h-4 w-4 border-gray-300 rounded"
-              />
-              <label htmlFor="isAdmin" className="ml-2 text-sm text-gray-700">
-                Login as Admin
-              </label>
-            </div>
-
-            {isAdmin && (
-              <div>
-                <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <select
-                  id="department"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                  required
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
 
             <button
               type="submit"
@@ -141,14 +112,15 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 text-center mb-2">
               Demo Credentials:
             </p>
             <div className="mt-2 space-y-1 text-xs text-gray-600">
-              <p>User: john@example.com / password</p>
-              <p>Admin: admin.water@gov.in / password</p>
-              <p>Super Admin: superadmin@gov.in / password</p>
+              <p><strong>Super Admin:</strong> admin@example.com / Admin123!</p>
             </div>
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Citizens can register directly
+            </p>
           </div>
         </div>
       </div>

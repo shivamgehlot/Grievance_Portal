@@ -13,13 +13,13 @@ export default function Home() {
       router.push('/login');
     } else if (user) {
       switch (user.role) {
-        case 'user':
+        case 'citizen':
           router.push('/user/dashboard');
           break;
         case 'admin':
           router.push('/admin/dashboard');
           break;
-        case 'super-admin':
+        case 'superadmin':
           router.push('/super-admin/dashboard');
           break;
         default:
