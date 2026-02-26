@@ -1,12 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '@/types';
+import { User, UserRole, DepartmentId } from '@/types';
 import { authAPI, saveAuthToken, removeAuthToken, decodeToken } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, role: UserRole, department?: DepartmentId) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
@@ -47,9 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, role: UserRole, department?: DepartmentId): Promise<boolean> => {
     try {
-      const response = await authAPI.login({ email, password });
+      const response = await authAPI.login({ email, password, role, department });
       
       // Save token
       saveAuthToken(response.access_token);
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData: User = {
         id: decoded.sub,
         email: email,
-        role: decoded.role as UserRole,
+        role: role, // Use the selected role
         departments: decoded.department_ids || [],
       };
       

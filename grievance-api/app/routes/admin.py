@@ -24,7 +24,7 @@ async def get_grievances(
     dept: Optional[str] = Query(None, description="Filter by department"),
     status_filter: Optional[str] = Query(None, alias="status", description="Filter by status"),
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=10000),
     current_user: TokenData = Depends(require_admin)
 ) -> List[GrievanceResponse]:
     """
@@ -32,7 +32,7 @@ async def get_grievances(
     
     - Admin can only see grievances for departments they manage
     - Superadmin can see all grievances
-    - Supports pagination
+    - Supports pagination (limit increased to 10000 for analytics)
     """
     grievances_col = get_grievances_collection()
     

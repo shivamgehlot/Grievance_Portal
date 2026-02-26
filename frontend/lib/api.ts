@@ -36,7 +36,15 @@ async function fetchAPI(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-    throw new Error(error.detail || `HTTP ${response.status}`);
+    const errorMessage = typeof error.detail === 'string' 
+      ? error.detail 
+      : JSON.stringify(error.detail || error);
+    console.error('API Error:', {
+      status: response.status,
+      url: `${API_URL}${endpoint}`,
+      error: error
+    });
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -49,6 +57,8 @@ async function fetchAPI(
 export interface LoginCredentials {
   email: string;
   password: string;
+  role: string;
+  department?: string;
 }
 
 export interface RegisterData {

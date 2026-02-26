@@ -16,6 +16,8 @@ class UserLogin(BaseModel):
     """User login request."""
     email: EmailStr
     password: str
+    role: Literal["citizen", "admin", "superadmin"]
+    department: Optional[str] = None
 
 
 class Token(BaseModel):
